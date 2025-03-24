@@ -60,4 +60,4 @@ class ind(Component):
         self.y_shape = [*map(lambda a: a + y1, y_shape)]
         self.shape.append([val for pair in zip(self.x_shape, self.y_shape) for val in pair])
 
-        self.name = "L" + str(Component.number_of_capacitors) + " " + str(self.inductance)
+        self.name = "L" + str(Component.number_of_inductors) + " " + str(self.inductance)

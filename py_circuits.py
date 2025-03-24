@@ -374,8 +374,8 @@ def start_simulation():
     s = steady_state_analysis.ssa(component_stack)
 
 root = Tk()
-#C = Canvas(root, bg="white", height = 600, width =1200)
-C = Canvas(root, bg="white", height = 400, width =400)
+C = Canvas(root, bg="white", height = 600, width =1200)
+#C = Canvas(root, bg="white", height = 400, width =400)
 C.grid(column=1, row=0, rowspan=10)
 button_red = ttk.Button(root, text="Resistor", command=enable_red)
 button_red.grid(column=0, row=1)

@@ -116,7 +116,7 @@ class ssa():
         current_vector = np.matmul(np.linalg.inv(impedance_matrix), voltage_vector)
 
         for index, key in enumerate(self.dict_of_unknowns.keys()):
-            print ("I" + key[1:] + " = " + str(current_vector[index,0]) + " A")
+            print ("I_" + key + " = " + str(current_vector[index,0]) + " A")
 
         #clear the neighbors list
         for comp in self.component_stack:
