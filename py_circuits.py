@@ -6,6 +6,8 @@ from components import resistors
 from components import wires
 from components import grounds
 from components import sources
+from components import capacitors
+from components import inductors
 from circ_engine import steady_state_analysis
 
 moving_list = [0,0,0,0] # to be used for the moving of components
@@ -17,6 +19,16 @@ def enable_red():
     unbind_everything()
     top_label.config(text="Resistor")
     C.bind("<Button-1>", add_red)
+
+def enable_cap():
+    unbind_everything()
+    top_label.config(text="Capacitor")
+    C.bind("<Button-1>", add_cap)
+
+def enable_ind():
+    unbind_everything()
+    top_label.config(text="Inductor")
+    C.bind("<Button-1>", add_ind)
 
 def display_vertices(event):
     x, y = event.x, event.y
@@ -39,6 +51,20 @@ def add_red(event):
     res.drawit()
     component_stack.append(res)
     res.showname()
+
+def add_cap(event):
+    global C
+    cap = capacitors.cap(event.x, event.y, C)
+    cap.drawit()
+    component_stack.append(cap)
+    cap.showname()
+
+def add_ind(event):
+    global C
+    ind = inductors.ind(event.x, event.y, C)
+    ind.drawit()
+    component_stack.append(ind)
+    ind.showname()
 
 def saveposn(event):
     global lastx, lasty, wir, x_cor, y_cor, C
@@ -125,6 +151,30 @@ def set_values(event):
                 component_list[0].showname()
                 a.grab_release()
                 a.destroy()
+        if component_list[0].name[0] == "L":
+            if float(input_field.get()) >= 0:
+                component_list[0].inductance = float(input_field.get())
+                inductance_name_before = ""
+                for i in component_list[0].name:
+                    inductance_name_before = inductance_name_before + i
+                    if i == " ":
+                        break
+                component_list[0].name = inductance_name_before + str(component_list[0].inductance)
+                component_list[0].showname()
+                a.grab_release()
+                a.destroy()
+        if component_list[0].name[0] == "C":
+            if float(input_field.get()) >= 0:
+                component_list[0].capacitance = float(input_field.get())
+                capacitance_name_before = ""
+                for i in component_list[0].name:
+                    capacitance_name_before = capacitance_name_before + i
+                    if i == " ":
+                        break
+                component_list[0].name = capacitance_name_before + str(component_list[0].capacitance)
+                component_list[0].showname()
+                a.grab_release()
+                a.destroy()
         elif component_list[0].name[0] == "S":
             if float(input_field_1.get()) and (float(input_field_2.get()) >= 0):
                 component_list[0].amplitude = float(input_field_1.get())
@@ -139,10 +189,10 @@ def set_values(event):
                     component_list[0].name = component_list[0].name + " DC"
                 else:
                     component_list[0].name = component_list[0].name + " " + str(input_field_2.get()) + " Hz"
+                component_list[0].frequency = float(input_field_2.get())
                 component_list[0].showname()
                 a.grab_release()
                 a.destroy()
-
 
     for comp in component_stack:
         if comp.hl == 1:
@@ -151,6 +201,32 @@ def set_values(event):
                 a = Toplevel(root)
                 a.grab_set()
                 label_text = "Resistance (Ohm) = "
+                txt = Label(a)
+                txt.config(text=label_text)
+                txt.grid(column=0, row=0)
+                input_field = Entry(a)
+                input_field.grid(column=1, row=0)
+                btn = Button(a)
+                btn.config(text="Submit", command=get_button_value)
+                btn.grid(column=0, row=1, columnspan=2)
+            elif comp.name[0] == "C":
+                component_list.append(comp)
+                a = Toplevel(root)
+                a.grab_set()
+                label_text = "Capacitance (F) = "
+                txt = Label(a)
+                txt.config(text=label_text)
+                txt.grid(column=0, row=0)
+                input_field = Entry(a)
+                input_field.grid(column=1, row=0)
+                btn = Button(a)
+                btn.config(text="Submit", command=get_button_value)
+                btn.grid(column=0, row=1, columnspan=2)
+            elif comp.name[0] == "L":
+                component_list.append(comp)
+                a = Toplevel(root)
+                a.grab_set()
+                label_text = "Inductance (H) = "
                 txt = Label(a)
                 txt.config(text=label_text)
                 txt.grid(column=0, row=0)
@@ -298,23 +374,27 @@ def start_simulation():
     s = steady_state_analysis.ssa(component_stack)
 
 root = Tk()
-C = Canvas(root, bg="white", height = 600, width =1200)
-#C = Canvas(root, bg="white", height = 400, width =400)
-C.grid(column=1, row=0, rowspan=8)
+#C = Canvas(root, bg="white", height = 600, width =1200)
+C = Canvas(root, bg="white", height = 400, width =400)
+C.grid(column=1, row=0, rowspan=10)
 button_red = ttk.Button(root, text="Resistor", command=enable_red)
 button_red.grid(column=0, row=1)
+button_red = ttk.Button(root, text="Capacitor", command=enable_cap)
+button_red.grid(column=0, row=2)
+button_red = ttk.Button(root, text="Inductor", command=enable_ind)
+button_red.grid(column=0, row=3)
 button_wir = ttk.Button(root, text="Wire", command=add_wir)
-button_wir.grid(column=0, row=2)
+button_wir.grid(column=0, row=4)
 button_none = ttk.Button(root, text="Source", command=enable_src)
-button_none.grid(column=0, row=3)
-button_none = ttk.Button(root, text="Gnd", command=enable_gnd)
-button_none.grid(column=0, row=4)
-button_none = ttk.Button(root, text="Set", command=enable_set)
 button_none.grid(column=0, row=5)
-button_none = ttk.Button(root, text="Clear", command=clear_everything)
+button_none = ttk.Button(root, text="Gnd", command=enable_gnd)
 button_none.grid(column=0, row=6)
-button_none = ttk.Button(root, text="Simulate", command=start_simulation)
+button_none = ttk.Button(root, text="Set", command=enable_set)
 button_none.grid(column=0, row=7)
+button_none = ttk.Button(root, text="Clear", command=clear_everything)
+button_none.grid(column=0, row=8)
+button_none = ttk.Button(root, text="Simulate", command=start_simulation)
+button_none.grid(column=0, row=9)
 top_label = ttk.Label(root, text="Clear")
 top_label.grid(column=0, row =0)
 

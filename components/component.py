@@ -7,6 +7,8 @@ class Component:
     number_of_wires = 0
     number_of_grounds = 0
     number_of_sources = 0
+    number_of_capacitors = 0
+    number_of_inductors = 0
 
     def __init__(self, canvas):
         self.C = canvas
@@ -121,13 +123,13 @@ class Component:
         self.C.coords(self.label_id, [val for pair in zip(x_coordinates, y_coordinates) for val in pair])
 
     def showname(self):
-        if self.name[0] == "R":
+        if self.name[0] in ("R", "L"):
             if self.label_id == -1:
                 self.label_id = self.C.create_text((self.x_coord[0]+self.x_coord[1])/2, self.y_coord[0]-30, fill = "blue", font = "Times 15", text = self.name)
             else:
                 self.C.delete(self.label_id) # label needs to be deleted to get updated
                 self.label_id = self.C.create_text((self.x_coord[0]+self.x_coord[1])/2, self.y_coord[0]-30, fill = "blue", font = "Times 15", text = self.name)
-        elif self.name[0] == "S":
+        elif self.name[0] in ("S", "C") :
             if self.label_id == -1:
                 self.label_id = self.C.create_text(self.x_coord[0]-80, -15+self.y_coord[1], fill = "blue", font = "Times 15", text = self.name)
             else:

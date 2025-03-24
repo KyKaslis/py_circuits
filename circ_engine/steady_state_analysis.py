@@ -7,13 +7,14 @@ class ssa():
         self.number_of_sources = 0
         self.number_of_unknowns = 0 # equivalent to the number of passive elements (e.g. resistors)
         self.dict_of_unknowns = {} # dictionary of the unknown elements
+        self.ang_frequency = 2*np.pi*ssa.get_frequency(component_stack) #get angular frequency of operation
         self.calc_currents()
 
     def calc_currents(self):
         for comp in self.component_stack:
             if comp.name[0] == "S":
                 self.number_of_sources += 1
-            elif comp.name[0] in "R":
+            elif comp.name[0] in ("R", "C", "L"):
                 self.dict_of_unknowns.update({ssa.get_first_name(comp.name): self.number_of_unknowns})
                 self.number_of_unknowns += 1
 
@@ -56,8 +57,8 @@ class ssa():
                     a = ssa.find_circle(a_circle, node, list_of_connected_nodes_copy)
                     list_of_circles.append(a_circle)
 
-        impedance_matrix = np.zeros(shape=(self.number_of_unknowns, self.number_of_unknowns))
-        voltage_vector = np.zeros(shape=(self.number_of_unknowns,1))
+        impedance_matrix = np.zeros(shape=(self.number_of_unknowns, self.number_of_unknowns),dtype=complex)
+        voltage_vector = np.zeros(shape=(self.number_of_unknowns,1), dtype=complex)
         current_rank = 0
 
         # apply KVL (all currents go from node 1 to node 2)
@@ -70,11 +71,21 @@ class ssa():
                         voltage_vector[current_rank,0] = -float(ssa.get_value(node))
                     else:
                         voltage_vector[current_rank,0] = float(ssa.get_value(node))
-                else:
+                elif node[0] == "R":
                     if node[-1] == "1":
                         impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = float(ssa.get_value(node))
                     else:
                         impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = -float(ssa.get_value(node))
+                elif node[0] == "L":
+                    if node[-1] == "1":
+                        impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = 1j*self.ang_frequency*float(ssa.get_value(node))
+                    else:
+                        impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = -1j*self.ang_frequency*float(ssa.get_value(node))
+                elif node[0] == "C":
+                    if node[-1] == "1":
+                        impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = 1/(1j*self.ang_frequency*float(ssa.get_value(node)))
+                    else:
+                        impedance_matrix[current_rank, self.dict_of_unknowns[ssa.get_first_name(node)]] = -1/(1j*self.ang_frequency*float(ssa.get_value(node)))
             if np.linalg.matrix_rank(impedance_matrix) > current_rank:
                 current_rank += 1
             if current_rank == self.number_of_unknowns:
@@ -202,3 +213,9 @@ class ssa():
                             union_made = 1
                             return union_made, wirelist
         return union_made, wirelist
+
+    @staticmethod
+    def get_frequency(components):
+        for comp in components:
+            if comp.name[0] == "S":
+                return comp.frequency
